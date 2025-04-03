@@ -21,24 +21,24 @@ When ChatGPT conversations become very long, the DOM can get overloaded and scro
 ### For Developers
 
 1. **Clone the Repository:**
-   ```bash
+```bash
 git clone https://github.com/mbeardwell/chatgpt-long-chat-optimizer.git
 cd chatgpt-long-chat-optimizer
 ```
 
 2.  **Install Dependencies:**
     
-    ```bash
+```bash
 npm install
 ```
     
-3.  **Build the Extension:** The project uses Webpack to bundle the modular source code into production‑ready scripts.
-    
-    ```bash
-npm run build
-```
-    
-    The bundled files are output to the `dist` folder.
+3.  **Build the Extension:** The project uses Webpack to bundle the modular source code into production‑ready scripts.    
+
+   ```bash
+   npm run build
+   ```
+   
+   The bundled files are output to the `dist` folder.
     
 4.  **Load the Extension in Chrome:**
     
@@ -52,7 +52,7 @@ npm run build
         
 5.  **Development Mode (Optional):** To rebuild automatically on file changes, run:
     
-    ```bash
+```bash
 npm run watch
 ```
     
@@ -79,7 +79,7 @@ export const CONFIG = {
   DEBUG: false,  // Disable debug logging in production
   OVERLAY_ENABLED: true,
 };
-````
+```
 
 Usage
 -----
