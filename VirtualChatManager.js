@@ -1,0 +1,124 @@
+import { CONFIG } from './config.js';
+import { getNodeId } from './utils.js';
+
+/**
+ * Manages the caching and virtual rendering of chat messages.
+ */
+export class VirtualChatManager {
+  constructor() {
+    this.allTurns = [];         // Array of all message nodes
+    this.nodeCache = new Map();   // Cache mapping node IDs to nodes
+    this.lowestIndex = 0;         // First visible message index
+    this.highestIndex = 0;        // Last visible message index
+    this.containerCache = null;   // Cached reference to the conversation container
+  }
+  
+  /**
+   * Returns the conversation container element.
+   * Caches the result for performance.
+   * @returns {Element} The conversation container element.
+   */
+  getConversationContainer() {
+    if (this.containerCache) return this.containerCache;
+    this.containerCache = document.querySelector('article[data-testid^="conversation-turn"]')?.parentElement
+        || document.querySelector('main');
+    return this.containerCache;
+  }
+  
+  /**
+   * Clears and rebuilds the cache of message nodes.
+   */
+  rebuildMessageCache() {
+    this.allTurns = [];
+    this.nodeCache.clear();
+  
+    const container = this.getConversationContainer();
+    if (!container) return;
+  
+    // Query the container for all message articles
+    const articles = container.querySelectorAll('article[data-testid^="conversation-turn"]');
+    articles.forEach(article => {
+      const id = getNodeId(article);
+      if (id) {
+        this.nodeCache.set(id, article);
+        this.allTurns.push(article);
+      }
+    });
+  
+    if (CONFIG.DEBUG) {
+      console.log(`[VirtualChatManager] Cache rebuilt. Total messages: ${this.allTurns.length}`);
+    }
+  }
+  
+  /**
+   * Updates the indices that define the currently visible window of messages.
+   */
+  updateWindowIndices() {
+    this.highestIndex = this.allTurns.length - 1;
+    this.lowestIndex = Math.max(0, this.highestIndex - (CONFIG.KEEP_RECENT - 1));
+  
+    if (CONFIG.DEBUG) {
+      console.log(`[VirtualChatManager] Window indices updated: lowest=${this.lowestIndex}, highest=${this.highestIndex}`);
+    }
+  }
+  
+  /**
+   * Updates the DOM to show only the messages within the current visible window.
+   * @param {Element} container - The container element (default is the cached container).
+   */
+  resyncDOM(container = this.getConversationContainer()) {
+    if (!container) return;
+  
+    this.allTurns.forEach((node, index) => {
+      node.style.display = (index >= this.lowestIndex && index <= this.highestIndex) ? '' : 'none';
+    });
+  
+    if (CONFIG.DEBUG) {
+      console.log(`[VirtualChatManager] DOM resynced. Showing ${this.highestIndex - this.lowestIndex + 1} messages.`);
+    }
+  }
+  
+  /**
+   * Extends the visible window by lowering the lowest index.
+   * @returns {boolean} True if the window was extended, false otherwise.
+   */
+  extendWindowBackward() {
+    const prevLowest = this.lowestIndex;
+    this.lowestIndex = Math.max(0, this.lowestIndex - CONFIG.CHUNK_SIZE);
+    return this.lowestIndex !== prevLowest;
+  }
+  
+  /**
+   * Alias for getConversationContainer.
+   * @returns {Element} The conversation container element.
+   */
+  getContainer() {
+    return this.getConversationContainer();
+  }
+  
+  /**
+   * Returns statistics about the currently loaded messages.
+   * @returns {Object} An object with 'visible' and 'total' message counts.
+   */
+  getLoadedStats() {
+    return {
+      visible: this.highestIndex - this.lowestIndex + 1,
+      total: this.allTurns.length,
+    };
+  }
+  
+  /**
+   * Adds a new message node to the cache if it is not already present.
+   * @param {Element} node - The message node to add.
+   * @returns {boolean} True if the node was added, false otherwise.
+   */
+  addNewNode(node) {
+    const id = getNodeId(node);
+    if (!this.nodeCache.has(id)) {
+      this.nodeCache.set(id, node);
+      this.allTurns.push(node);
+      return true;
+    }
+    return false;
+  }
+}
