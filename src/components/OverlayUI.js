@@ -1,4 +1,5 @@
-import { CONFIG } from './config.js';
+import { IDS } from '@config/constants';
+import { Logger } from '@utils/utils';
 
 /**
  * Manages the debug overlay that displays runtime statistics.
@@ -14,10 +15,14 @@ export class OverlayUI {
    * Initializes the overlay element and appends it to the document.
    */
   init() {
-    if (this.overlay) return;
+    const existing = document.getElementById(IDS.DEBUG_OVERLAY);
+    if (existing) {
+      this.overlay = existing;
+      return;
+    }
 
     this.overlay = document.createElement('div');
-    this.overlay.id = 'tm-debug-overlay';
+    this.overlay.id = IDS.DEBUG_OVERLAY;
     Object.assign(this.overlay.style, {
       position: 'fixed',
       top: '10px',
@@ -43,7 +48,7 @@ export class OverlayUI {
       this.hide();
     }
 
-    if (CONFIG.DEBUG) console.log('[OverlayUI] Debug overlay initialised.');
+    Logger.debug('OverlayUI', 'Debug overlay initialised.');
   }
 
   /**
@@ -52,13 +57,25 @@ export class OverlayUI {
    */
   update(stats) {
     if (!this.overlay || !this.visible) return;
-
-    const { visible = 0, total = 0, scrollTop = 0, clientHeight = 0, scrollHeight = 0 } = stats;
+  
+    const {
+      visible = 0,
+      total = 0,
+      scrollTop = null,
+      clientHeight = null,
+      scrollHeight = null,
+    } = stats;
+  
+    if (total === 0) {
+      this.overlay.innerText = 'Waiting for messages...';
+      return;
+    }
+  
     this.overlay.innerText =
       `Messages: ${visible} / ${total}\n` +
-      `scrollTop: ${scrollTop.toFixed(0)}\n` +
-      `clientHeight: ${clientHeight.toFixed(0)}\n` +
-      `scrollHeight: ${scrollHeight.toFixed(0)}`;
+      `scrollTop: ${scrollTop?.toFixed(0)}\n` +
+      `clientHeight: ${clientHeight?.toFixed(0)}\n` +
+      `scrollHeight: ${scrollHeight?.toFixed(0)}`;
   }
 
   /**
@@ -84,6 +101,10 @@ export class OverlayUI {
    */
   toggle() {
     this.visible ? this.hide() : this.show();
-    if (CONFIG.DEBUG) console.log(`[OverlayUI] Visibility toggled: ${this.visible}`);
+    Logger.debug('OverlayUI', `Visibility toggled: ${this.visible}`);
+  }
+
+  destroy() {
+      if (this.overlay) document.body.removeChild(this.overlay);
   }
 }

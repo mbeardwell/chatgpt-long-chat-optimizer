@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",                         // Modern JS features, matches Chrome extension runtime
+    "module": "ESNext",                         // Webpack handles bundling; ES modules are fine
+    "moduleResolution": "Node",                // Needed for alias resolution and imports
+    "lib": ["DOM", "ES2021"],                  // DOM APIs + modern JS
+    "outDir": "./dist",                        // Matches webpack output
+    "rootDir": "./src",                        // Your source files
+    "baseUrl": "./src",                        // Required for path aliases
+    "paths": {
+      "@components/*": ["components/*"],
+      "@managers/*": ["managers/*"],
+      "@utils/*": ["utils/*"],
+      "@content/*": ["content/*"],
+      "@config/*": ["config/*"]
+    },
+    "allowJs": true,                           // Allow JS files alongside TS (during migration)
+    "checkJs": true,                           // Enable type-checking on JS files
+    "esModuleInterop": true,                   // CommonJS compatibility
+    "forceConsistentCasingInFileNames": true,  // Avoid cross-platform path issues
+    "strict": true,                            // Enable all strict type checks
+    "skipLibCheck": true                       // Skip type checking of node_modules
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,4 +1,6 @@
-import { CONFIG } from './config.js';
+import { CONFIG } from '@config/config';
+import { SELECTORS, IDS } from '@config/constants';
+import { Logger } from '@utils/utils';
 
 /**
  * Provides a custom scroll-to-bottom button for improved UX.
@@ -23,18 +25,16 @@ export class ScrollButton {
   init() {
     this.container = this.chatManager.getContainer();
     if (!this.container) {
-      console.warn('[ScrollButton] Container not found. Retrying...');
+      Logger.warn('ScrollButton', 'Container not found. Retrying...');
       setTimeout(() => this.init(), 1000);
       return;
     }
 
-    const nativeBtn = document.querySelector(
-      'button.cursor-pointer.absolute.z-10.rounded-full.bg-clip-padding.border.text-token-text-secondary.border-token-border-light.right-1\\/2.translate-x-1\\/2.bg-token-main-surface-primary.w-8.h-8.flex.items-center.justify-center.bottom-5'
-    );
+    const nativeBtn = document.querySelector(SELECTORS.SCROLL_BUTTON);
 
     if (!nativeBtn) {
       if (this.nativeButtonRetryCount < 3) {  // Only log up to 3 times
-        console.warn('[ScrollButton] Native scroll button not found. Retrying...');
+        Logger.warn('ScrollButton', 'Native scroll button not found. Retrying...');
       }
       this.nativeButtonRetryCount++;
       setTimeout(() => this.init(), 1000);
@@ -45,12 +45,12 @@ export class ScrollButton {
     nativeBtn.style.display = 'none';
 
     this.button = nativeBtn.cloneNode(true);
-    this.button.id = 'custom-scroll-button';
+    this.button.id = IDS.CUSTOM_SCROLL_BUTTON;
     this.button.style.display = '';
     this.button.addEventListener('click', this.handleClick.bind(this));
     nativeBtn.parentElement.appendChild(this.button);
 
-    if (CONFIG.DEBUG) console.log('[ScrollButton] Custom scroll button injected.');
+    Logger.debug('ScrollButton', 'Custom scroll button injected.');
   }
 
   /**
@@ -62,7 +62,7 @@ export class ScrollButton {
     e.preventDefault();
     e.stopPropagation();
 
-    if (CONFIG.DEBUG) console.log('[ScrollButton] Button clicked.');
+    Logger.debug('ScrollButton', 'Button clicked.');
 
     if (!this.container) return;
 
@@ -93,9 +93,7 @@ export class ScrollButton {
 
     this.button.style.display = nearBottom ? 'none' : '';
 
-    if (CONFIG.DEBUG) {
-      console.log(`[ScrollButton] Visibility updated. Near bottom: ${nearBottom}`);
-    }
+    Logger.debug('ScrollButton', `Visibility updated. Near bottom: ${nearBottom}`);
   }
 
   /**

@@ -1,4 +1,5 @@
-import { CONFIG } from './config.js';
+import { CONFIG } from '@config/config';
+import { Logger } from '@utils/utils';
 
 /**
  * Manages scroll events and related UI updates for the chat conversation.
@@ -26,13 +27,13 @@ export class ScrollManager {
   attach() {
     this.container = this.chatManager.getContainer();
     if (!this.container) {
-      console.warn('[ScrollManager] Container not found. Retrying...');
+      Logger.warn('ScrollManager', 'Container not found. Retrying...');
       setTimeout(() => this.attach(), 1000);
       return;
     }
 
     this.container.addEventListener('scroll', this.scrollHandler);
-    if (CONFIG.DEBUG) console.log('[ScrollManager] Scroll event attached.');
+    Logger.debug('ScrollManager', 'Scroll event attached.');
   }
 
   /**
@@ -40,6 +41,11 @@ export class ScrollManager {
    * updating the scroll button visibility, and updating the overlay stats.
    */
   onScroll() {
+    Logger.debug('ScrollManager', 'scrollTop:', this.container?.scrollTop);
+    Logger.debug('ScrollManager', 'clientHeight:', this.container?.clientHeight);
+    Logger.debug('ScrollManager', 'scrollHeight:', this.container?.scrollHeight);
+    Logger.debug('ScrollManager', 'container exists?', !!this.container);
+
     if (!this.container || window.disableAutoScroll) return;
 
     const scrollTop = this.container.scrollTop;
@@ -51,9 +57,7 @@ export class ScrollManager {
     const topTrigger = scrollTop < CONFIG.TOP_THRESHOLD;
     const dynamicBottomThreshold = clientHeight * CONFIG.DYNAMIC_BOTTOM_RATIO;
 
-    if (CONFIG.DEBUG) {
-      console.log(`[ScrollManager] ScrollTop: ${scrollTop}, Up: ${scrollingUp}, TopTrigger: ${topTrigger}`);
-    }
+    Logger.debug('ScrollManager', `ScrollTop: ${scrollTop}, Up: ${scrollingUp}, TopTrigger: ${topTrigger}`);
 
     if (scrollingUp && topTrigger) {
       const extended = this.chatManager.extendWindowBackward();
@@ -101,9 +105,7 @@ export class ScrollManager {
       const childRect = lastChild.getBoundingClientRect();
       const offset = childRect.bottom - containerRect.bottom;
 
-      if (CONFIG.DEBUG) {
-        console.log(`[ScrollManager] Scroll attempt ${attempts}: offset=${offset.toFixed(2)}`);
-      }
+      Logger.debug('ScrollManager', `Scroll attempt ${attempts}: offset=${offset.toFixed(2)}`);
 
       if (offset > 5) {
         container.scrollTop += offset;

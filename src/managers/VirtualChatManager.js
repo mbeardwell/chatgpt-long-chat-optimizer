@@ -1,12 +1,13 @@
-import { CONFIG } from './config.js';
-import { getNodeId } from './utils.js';
+import { CONFIG } from '@config/config';
+import { SELECTORS } from '@config/constants';
+import { getNodeId, Logger } from '@utils/utils';
 
 /**
  * Manages the caching and virtual rendering of chat messages.
  */
 export class VirtualChatManager {
   constructor() {
-    this.allTurns = [];         // Array of all message nodes
+    this.allTurns = [];           // Array of all message nodes
     this.nodeCache = new Map();   // Cache mapping node IDs to nodes
     this.lowestIndex = 0;         // First visible message index
     this.highestIndex = 0;        // Last visible message index
@@ -20,8 +21,8 @@ export class VirtualChatManager {
    */
   getConversationContainer() {
     if (this.containerCache) return this.containerCache;
-    this.containerCache = document.querySelector('article[data-testid^="conversation-turn"]')?.parentElement
-        || document.querySelector('main');
+    this.containerCache = document.querySelector(SELECTORS.CONVERSATION_TURN)?.parentElement
+        || document.querySelector(SELECTORS.CHAT_CONTAINER);
     return this.containerCache;
   }
   
@@ -36,7 +37,7 @@ export class VirtualChatManager {
     if (!container) return;
   
     // Query the container for all message articles
-    const articles = container.querySelectorAll('article[data-testid^="conversation-turn"]');
+    const articles = container.querySelectorAll(SELECTORS.CONVERSATION_TURN);
     articles.forEach(article => {
       const id = getNodeId(article);
       if (id) {
@@ -45,9 +46,7 @@ export class VirtualChatManager {
       }
     });
   
-    if (CONFIG.DEBUG) {
-      console.log(`[VirtualChatManager] Cache rebuilt. Total messages: ${this.allTurns.length}`);
-    }
+    Logger.debug('VirtualChatManager', `Cache rebuilt. Total messages: ${this.allTurns.length}`);
   }
   
   /**
@@ -57,9 +56,7 @@ export class VirtualChatManager {
     this.highestIndex = this.allTurns.length - 1;
     this.lowestIndex = Math.max(0, this.highestIndex - (CONFIG.KEEP_RECENT - 1));
   
-    if (CONFIG.DEBUG) {
-      console.log(`[VirtualChatManager] Window indices updated: lowest=${this.lowestIndex}, highest=${this.highestIndex}`);
-    }
+    Logger.debug('VirtualChatManager', `Window indices updated: lowest=${this.lowestIndex}, highest=${this.highestIndex}`);
   }
   
   /**
@@ -73,9 +70,7 @@ export class VirtualChatManager {
       node.style.display = (index >= this.lowestIndex && index <= this.highestIndex) ? '' : 'none';
     });
   
-    if (CONFIG.DEBUG) {
-      console.log(`[VirtualChatManager] DOM resynced. Showing ${this.highestIndex - this.lowestIndex + 1} messages.`);
-    }
+    Logger.debug('VirtualChatManager', `DOM resynced. Showing ${this.highestIndex - this.lowestIndex + 1} messages.`);
   }
   
   /**
